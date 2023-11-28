@@ -1,6 +1,8 @@
 import express from "express";
 import mongoose from "mongoose";
 import apiRouter from "./apiRouter.js";
+import { genericError } from "../middlewares/genericError.js";
+
 const server = express();
 const port = 3020;
 
