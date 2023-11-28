@@ -1,6 +1,11 @@
 import express from "express";
-import { User } from "./models/users.js";
+import { User } from "../models/users.js";
 const usersRouter = express.Router();
+
+// TEST
+usersRouter.get("/test", async (req, res) => {
+  res.json({ message: "Users router working! 🚀" });
+});
 
 // GET tutti gli autori
 usersRouter.get("/", async (req, res) => {
