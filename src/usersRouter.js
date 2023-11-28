@@ -1,6 +1,6 @@
 import express from "express";
-import { User } from "../models/users.js";
-import { genericError } from "../middlewares/genericError.js";
+import { User } from "./models/users.js";
+import { genericError } from "./middlewares/genericError.js";
 
 const usersRouter = express.Router();
 
@@ -24,7 +24,7 @@ usersRouter
   })
   // QUERY
   // 1) tutte le risorse con il dato isActive = True
-  .get("/get", async (req, res, next) => {
+  .get("/q1", async (req, res, next) => {
     try {
       const isActive = await User.find({
         isActive: true,
@@ -38,11 +38,94 @@ usersRouter
     }
   })
   // 2) tutte le risorse con il dato age maggiore di 26
-  .get("/get", async (req, res, next) => {
+  .get("/q2", async (req, res, next) => {
     try {
+      const { limit, skip, sortBy, order } = req.query;
       const age = await User.find({
         age: { $gt: 26 },
-      });
+      })
+        .sort(
+          sortBy && order
+            ? {
+                // "price": "ascending" | "descending"
+                // "brand": "ascending" | "descending"
+                // "name": "ascending" | "descending"
+                [sortBy]: order,
+              }
+            : undefined
+        )
+        .skip(skip)
+        .limit(limit);
+
+      if (!age) {
+        return res.status(404).send();
+      }
+      res.json(age);
+    } catch (error) {
+      next(error);
+    }
+  })
+
+  // QUERY STRING PARAMS
+  // http://localhost:3020/api/users/get?filter=age:gt:26
+  //http://localhost:3020/api/users/get?filter=age:gt:26&sortBy=age&order=ascending
+
+  // 3) tutte le risorse con il dato age maggiore di 26 e minore e uguale a 30
+  .get("/q3", async (req, res, next) => {
+    try {
+      const { limit, skip, sortBy, order } = req.query;
+      const age = await User.find({
+        $and: [
+          {
+            age: { $gt: 26, $lte: 20 },
+          },
+        ],
+      })
+        .sort(
+          sortBy && order
+            ? {
+                // "price": "ascending" | "descending"
+                // "brand": "ascending" | "descending"
+                // "name": "ascending" | "descending"
+                [sortBy]: order,
+              }
+            : undefined
+        )
+        .skip(skip)
+        .limit(limit);
+
+      if (!age) {
+        return res.status(404).send();
+      }
+      res.json(age);
+    } catch (error) {
+      next(error);
+    }
+  })
+
+  // 4) tutte le risorse con il dato eyes uguale a green
+  .get("/q4", async (req, res, next) => {
+    try {
+      const { limit, skip, sortBy, order, ...userFilter } = req.query;
+      const query = {};
+      for (const key of Object.keys(userFilter)) {
+        query[key] = { $regex: req.query[key], $options: "i" };
+      }
+
+      const age = await User.find(query)
+        .sort(
+          sortBy && order
+            ? {
+                // "price": "ascending" | "descending"
+                // "brand": "ascending" | "descending"
+                // "name": "ascending" | "descending"
+                [sortBy]: order,
+              }
+            : undefined
+        )
+        .skip(skip)
+        .limit(limit);
+
       if (!age) {
         return res.status(404).send();
       }
