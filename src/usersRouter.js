@@ -105,11 +105,18 @@ usersRouter
       const query = {};
       for (const key of Object.keys(userFilter)) {
         query[key] = {
-          $regex: req.query[key],
-          $options: "i",
+          $or: [
+            {
+              $regex: req.query[key],
+              $options: "i",
+            },
+            {
+              $eq: req.query[key],
+            },
+          ],
         };
       }
-
+      // {$and []}
       const age = await User.find(query)
         .sort(
           sortBy && order
